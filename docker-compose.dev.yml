@@ -1,0 +1,26 @@
+services:
+  nginx:
+    build:
+      target: development
+    ports:
+      - '8080:80' # Only expose nginx port
+    volumes:
+      - ./packages/api-gateway/nginx.conf:/etc/nginx/nginx.conf
+      - ./packages/api-gateway/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped
+
+  client_app:
+    build:
+      target: development
+    expose:
+      - '4200' # Only expose to internal docker network
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+    command: npx nx serve client --host 0.0.0.0
+    restart: unless-stopped

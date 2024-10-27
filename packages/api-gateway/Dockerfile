@@ -1,10 +1,9 @@
-FROM nginx:alpine
+FROM nginx:alpine AS development
+COPY packages/api-gateway/nginx.conf /etc/nginx/nginx.conf
+COPY packages/api-gateway/conf.d/default.conf /etc/nginx/conf.d/default.conf
+CMD ["nginx", "-g", "daemon off;"]
 
-# Copy the custom NGINX configuration
-COPY nginx.conf /etc/nginx/nginx.conf
-
-# Expose port 80
-EXPOSE 80
-
-# Start NGINX
+FROM nginx:alpine AS production
+COPY packages/api-gateway/nginx.conf /etc/nginx/nginx.conf
+COPY packages/api-gateway/conf.d/default.conf /etc/nginx/conf.d/default.conf
 CMD ["nginx", "-g", "daemon off;"]

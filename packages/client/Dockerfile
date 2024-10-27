@@ -1,32 +1,39 @@
-# Stage 1: Build the client application
-FROM node:20-alpine AS builder
-
+# Base stage for shared dependencies
+FROM node:20-alpine AS base
 WORKDIR /app
 
-# !WIP
+# Development stage
+FROM base AS development
+# Install tools for debugging
+RUN apk add --no-cache python3 make g++ netcat-openbsd curl
 # Copy workspace configuration files
-COPY ../../package.json ../../package-lock.json ./
-COPY ../../nx.json ./
-COPY ../../tsconfig.base.json ./
-
+COPY package.json package-lock.json ./
+COPY nx.json ./
+COPY tsconfig.base.json ./
 # Copy the project files
-COPY . ./packages/client/
+COPY . .
+# Install all dependencies (including devDependencies) with legacy peer deps
+RUN npm install --legacy-peer-deps
+# Keep container running for development
+CMD ["npm", "run", "client:serve"]
 
-# Install dependencies
-RUN npm install
-
-# Build the client application
+# Build stage
+FROM base AS builder
+# Copy workspace configuration files
+COPY package.json package-lock.json ./
+COPY nx.json ./
+COPY tsconfig.base.json ./
+# Copy the project files
+COPY . .
+# Install dependencies and build with legacy peer deps
+RUN npm ci --legacy-peer-deps
 RUN npx nx build client
 
-# Stage 2: Serve the application with Nginx
-FROM nginx:alpine
-
+# Production stage
+FROM nginx:alpine AS production
 # Copy the Nginx configuration file
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
+COPY packages/client/nginx.conf /etc/nginx/conf.d/default.conf
 # Copy the built client application files into the Nginx html directory
 COPY --from=builder /app/dist/packages/client /usr/share/nginx/html
-
 EXPOSE 80
-
 CMD ["nginx", "-g", "daemon off;"]

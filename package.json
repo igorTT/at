@@ -2,7 +2,12 @@
   "name": "@at/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "client:serve": "nx serve client --host 0.0.0.0",
+    "docker:dev": "docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.dev.yml up --build -d",
+    "docker:dev:down": "docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.dev.yml down",
+    "docker:dev:logs": "docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.dev.yml logs -f"
+  },
   "private": true,
   "devDependencies": {
     "@eslint/js": "^9.8.0",
